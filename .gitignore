@@ -1,0 +1,7 @@
+node_modules/
+react-app/node_modules/
+react-app/dist/
+.secrets
+*.pyc
+__pycache__/
+eval-screenshots/

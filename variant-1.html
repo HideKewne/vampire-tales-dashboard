@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vampire Tales — My Vampire System Audiobook</title>
+    <link rel="stylesheet" href="css/variant-1.css">
+</head>
+<body>
+    <!-- Background Blobs -->
+    <div class="bg-blobs">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+        <div class="blob blob-3"></div>
+    </div>
+
+    <!-- App Layout -->
+    <div class="app-layout">
+        <!-- Top Bar -->
+        <header class="topbar">
+            <div class="topbar-logo">
+                <span class="vampire">Vampire</span> <span class="tales">Tales</span>
+            </div>
+            <div class="topbar-search">
+                <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                </svg>
+                <input type="text" placeholder="Chapter search..." id="chapterSearch">
+            </div>
+        </header>
+
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <h2 class="sidebar-title">Chapters</h2>
+            <ul class="chapter-list" id="chapterList">
+                <li class="chapter-item" data-chapter="1886">Ch 1886: Distant Howls</li>
+                <li class="chapter-item" data-chapter="1887">Ch 1887: Midnight Meeting</li>
+                <li class="chapter-item" data-chapter="1888">Ch 1888: Hidden Agenda</li>
+                <li class="chapter-item" data-chapter="1889">Ch 1889: Ancient Blood</li>
+                <li class="chapter-item" data-chapter="1890">Ch 1890: Rising Shadow</li>
+                <li class="chapter-item" data-chapter="1891">Ch 1891: Crimson Pact</li>
+                <li class="chapter-item active" data-chapter="1892">Ch 1892: Next Target</li>
+            </ul>
+        </aside>
+
+        <!-- Reader Wrapper (reader + player) -->
+        <div class="reader-wrapper">
+            <!-- Reader Panel -->
+            <div class="reader-panel" id="readerPanel">
+                <h1 class="chapter-title" id="chapterTitle">Chapter 1892: Next Target</h1>
+                <div class="chapter-text" id="chapterText">
+                    <p>Walking out of the cave after having just defeated the Demon tier beast, Agent 4 continued to walk into the direction where the two large energy readings were coming from.</p>
+                    <p>Zero was getting somewhat impatient as he had a big smile on his face. His hands were twitching during the walk, if he could, he wanted to personally test Erin, and after seeing what she had done and sensing the energy inside her.</p>
+                    <p class="reading-active">'I thought that the dhampirs' strength was mainly from their own personal aura. I knew that the dhampirs also learned Qi, but I never expected to find someone that has managed to cultivate their Qi to this level.' Zero thought, as he imagined what it would be like to use the Qi drain skill on her.</p>
+                    <p>It would mean all of the power and all of the strength that Erin had would be added to Zero's strength. Then he could achieve what he needed to achieve, and if a certain individual was to back out of their deal, he would also be able to make them pay.</p>
+                </div>
+            </div>
+
+            <!-- Audio Player -->
+            <div class="audio-player">
+                <div class="player-info">
+                    <div class="novel-title">My Vampire System</div>
+                    <div class="chapter-progress" id="chapterProgressText">Chapter 1892 — Paragraph 3/40</div>
+                </div>
+
+                <div class="player-controls">
+                    <button class="player-btn skip-btn" id="prevParaBtn" title="Previous paragraph">
+                        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg>
+                    </button>
+                    <button class="player-btn play-btn" id="playPauseBtn" title="Play/Pause">
+                        <svg viewBox="0 0 24 24" fill="currentColor" id="playIcon"><path d="M8 5v14l11-7z"/></svg>
+                        <svg viewBox="0 0 24 24" fill="currentColor" id="pauseIcon" style="display:none"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+                    </button>
+                    <button class="player-btn skip-btn" id="nextParaBtn" title="Next paragraph">
+                        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg>
+                    </button>
+                </div>
+
+                <div class="player-settings">
+                    <div class="player-setting">
+                        <label>Speed</label>
+                        <select class="speed-select" id="speedSelect">
+                            <option value="0.5">0.5x</option>
+                            <option value="0.75">0.75x</option>
+                            <option value="1" selected>1.0x</option>
+                            <option value="1.25">1.25x</option>
+                            <option value="1.5">1.5x</option>
+                            <option value="2">2.0x</option>
+                        </select>
+                    </div>
+                    <div class="player-setting">
+                        <label>Volume</label>
+                        <input type="range" class="volume-slider" id="volumeSlider" min="0" max="100" value="80">
+                    </div>
+                </div>
+
+                <div class="progress-bar-wrapper" id="progressBar">
+                    <div class="progress-bar-fill" id="progressBarFill"></div>
+                </div>
+            </div>
+            <!-- Hidden audio element -->
+            <audio id="audioElement" preload="none"></audio>
+        </div>
+
+        <!-- Chapter Navigation -->
+        <nav class="chapter-nav">
+            <button class="nav-btn" id="prevChapterBtn">Previous Chapter</button>
+            <span class="nav-chapter-num" id="navChapterNum">Chapter Number (1892)</span>
+            <button class="nav-btn" id="nextChapterBtn">Next Chapter</button>
+        </nav>
+    </div>
+
+    <script src="js/main.js"></script>
+</body>
+</html>
