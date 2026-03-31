@@ -13,12 +13,6 @@ interface ChapterData {
   chapterNumber: number
 }
 
-interface VoiceOption {
-  id: string
-  name: string
-  gender: string
-  accent: string
-}
 
 const DEFAULT_CHAPTERS = [
   { number: 1892, title: 'Next Target' },
@@ -35,8 +29,8 @@ function App() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [searchValue, setSearchValue] = useState('')
-  const [voice, setVoice] = useState('en-US-GuyNeural')
-  const [voices, setVoices] = useState<VoiceOption[]>([])
+  const [voice, setVoice] = useState('onyx')
+  const [sidebarFilter, setSidebarFilter] = useState('')
 
   const audioRef = useRef<HTMLAudioElement>(null)
   const nextAudioBlobRef = useRef<Blob | null>(null)
@@ -230,16 +224,17 @@ function App() {
     nextAudioBlobRef.current = null
   }, [speed, voice])
 
-  // Load voices + auto-load chapter on mount
+  // Auto-load chapter + full chapter list on mount
   useEffect(() => {
-    fetch(`${API_BASE}/voices`)
-      .then(r => r.json())
-      .then(v => setVoices(v))
-      .catch(() => setVoices([
-        { id: 'en-US-GuyNeural', name: 'Guy', gender: 'Male', accent: 'US' },
-        { id: 'en-US-AriaNeural', name: 'Aria', gender: 'Female', accent: 'US' },
-      ]))
     loadChapter(1892)
+    fetch(`${API_BASE}/chapters`)
+      .then(r => r.json())
+      .then(list => {
+        if (Array.isArray(list) && list.length > 0) {
+          setChapterList(list.sort((a: any, b: any) => a.number - b.number))
+        }
+      })
+      .catch(() => {})
   }, [loadChapter])
 
   // Keyboard shortcuts
@@ -324,17 +319,30 @@ function App() {
 
         {/* Sidebar */}
         <aside className="sidebar">
-          <h2 className="sidebar-title">Chapters</h2>
+          <h2 className="sidebar-title">Chapters ({chapterList.length})</h2>
+          <input
+            className="sidebar-search"
+            type="text"
+            placeholder="Filter chapters..."
+            value={sidebarFilter}
+            onChange={e => setSidebarFilter(e.target.value)}
+          />
           <ul className="chapter-list">
-            {chapterList.map(ch => (
-              <li
-                key={ch.number}
-                className={`chapter-item ${chapter?.chapterNumber === ch.number ? 'active' : ''}`}
-                onClick={() => loadChapter(ch.number)}
-              >
-                Ch {ch.number}: {ch.title}
-              </li>
-            ))}
+            {chapterList
+              .filter(ch => {
+                if (!sidebarFilter) return true
+                const q = sidebarFilter.toLowerCase()
+                return ch.title.toLowerCase().includes(q) || String(ch.number).includes(q)
+              })
+              .map(ch => (
+                <li
+                  key={ch.number}
+                  className={`chapter-item ${chapter?.chapterNumber === ch.number ? 'active' : ''}`}
+                  onClick={() => loadChapter(ch.number)}
+                >
+                  Ch {ch.number}: {ch.title}
+                </li>
+              ))}
           </ul>
         </aside>
 
@@ -394,13 +402,12 @@ function App() {
               <div className="player-setting">
                 <label>Voice</label>
                 <select className="speed-select" value={voice} onChange={e => setVoice(e.target.value)}>
-                  {voices.length > 0 ? voices.map(v => (
-                    <option key={v.id} value={v.id}>
-                      {v.name} ({v.gender === 'Male' ? 'M' : 'F'}, {v.accent})
-                    </option>
-                  )) : (
-                    <option value="en-US-GuyNeural">Guy (M, US)</option>
-                  )}
+                  <option value="onyx">Onyx</option>
+                  <option value="alloy">Alloy</option>
+                  <option value="echo">Echo</option>
+                  <option value="fable">Fable</option>
+                  <option value="nova">Nova</option>
+                  <option value="shimmer">Shimmer</option>
                 </select>
               </div>
               <div className="player-setting">

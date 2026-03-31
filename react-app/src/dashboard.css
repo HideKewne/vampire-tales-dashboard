@@ -206,8 +206,29 @@ body {
     font-size: 16px;
     font-weight: 600;
     color: var(--text-primary);
-    margin-bottom: 16px;
+    margin-bottom: 12px;
     padding-left: 8px;
+}
+
+.sidebar-search {
+    width: 100%;
+    padding: 8px 12px;
+    margin-bottom: 12px;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: var(--radius-xs);
+    color: var(--text-primary);
+    font-size: 13px;
+    font-family: 'Inter', sans-serif;
+    outline: none;
+}
+
+.sidebar-search::placeholder {
+    color: var(--text-secondary);
+}
+
+.sidebar-search:focus {
+    border-color: var(--primary-glow);
 }
 
 .chapter-list {
@@ -414,6 +435,11 @@ body {
     font-family: 'Inter', sans-serif;
     cursor: pointer;
     outline: none;
+}
+
+.speed-select option {
+    background: #1a0a0a;
+    color: var(--text-primary);
 }
 
 .volume-slider {
