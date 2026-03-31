@@ -13,6 +13,13 @@ interface ChapterData {
   chapterNumber: number
 }
 
+interface VoiceOption {
+  id: string
+  name: string
+  gender: string
+  accent: string
+}
+
 const DEFAULT_CHAPTERS = [
   { number: 1892, title: 'Next Target' },
 ]
@@ -28,7 +35,8 @@ function App() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [searchValue, setSearchValue] = useState('')
-  const [voice, setVoice] = useState('onyx')
+  const [voice, setVoice] = useState('en-US-GuyNeural')
+  const [voices, setVoices] = useState<VoiceOption[]>([])
 
   const audioRef = useRef<HTMLAudioElement>(null)
   const nextAudioBlobRef = useRef<Blob | null>(null)
@@ -222,8 +230,15 @@ function App() {
     nextAudioBlobRef.current = null
   }, [speed, voice])
 
-  // Auto-load chapter on mount
+  // Load voices + auto-load chapter on mount
   useEffect(() => {
+    fetch(`${API_BASE}/voices`)
+      .then(r => r.json())
+      .then(v => setVoices(v))
+      .catch(() => setVoices([
+        { id: 'en-US-GuyNeural', name: 'Guy', gender: 'Male', accent: 'US' },
+        { id: 'en-US-AriaNeural', name: 'Aria', gender: 'Female', accent: 'US' },
+      ]))
     loadChapter(1892)
   }, [loadChapter])
 
@@ -379,12 +394,13 @@ function App() {
               <div className="player-setting">
                 <label>Voice</label>
                 <select className="speed-select" value={voice} onChange={e => setVoice(e.target.value)}>
-                  <option value="onyx">Onyx</option>
-                  <option value="alloy">Alloy</option>
-                  <option value="echo">Echo</option>
-                  <option value="fable">Fable</option>
-                  <option value="nova">Nova</option>
-                  <option value="shimmer">Shimmer</option>
+                  {voices.length > 0 ? voices.map(v => (
+                    <option key={v.id} value={v.id}>
+                      {v.name} ({v.gender === 'Male' ? 'M' : 'F'}, {v.accent})
+                    </option>
+                  )) : (
+                    <option value="en-US-GuyNeural">Guy (M, US)</option>
+                  )}
                 </select>
               </div>
               <div className="player-setting">
