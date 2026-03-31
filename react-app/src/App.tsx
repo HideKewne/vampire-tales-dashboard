@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8770'
+const API_BASE = import.meta.env.VITE_API_URL || 'http://134.98.134.222/vampire-api'
 
 interface ChapterData {
   title: string
@@ -10,25 +10,22 @@ interface ChapterData {
   chapterNumber: number
 }
 
-const CHAPTER_LIST = [
-  { number: 1886, title: 'Distant Howls' },
-  { number: 1887, title: 'Midnight Meeting' },
-  { number: 1888, title: 'Hidden Agenda' },
-  { number: 1889, title: 'Ancient Blood' },
-  { number: 1890, title: 'Rising Shadow' },
-  { number: 1891, title: 'Crimson Pact' },
+const DEFAULT_CHAPTERS = [
   { number: 1892, title: 'Next Target' },
 ]
 
 function App() {
   const [chapter, setChapter] = useState<ChapterData | null>(null)
+  const [chapterList, setChapterList] = useState(DEFAULT_CHAPTERS)
   const [currentParaIndex, setCurrentParaIndex] = useState(0)
   const [isPlaying, setIsPlaying] = useState(false)
   const [isPaused, setIsPaused] = useState(false)
   const [speed, setSpeed] = useState('1')
   const [volume, setVolume] = useState(80)
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
   const [searchValue, setSearchValue] = useState('')
+  const [voice, setVoice] = useState('onyx')
 
   const audioRef = useRef<HTMLAudioElement>(null)
   const nextAudioBlobRef = useRef<Blob | null>(null)
@@ -37,6 +34,7 @@ function App() {
   // Load chapter from API
   const loadChapter = useCallback(async (chapterNumber: number) => {
     setLoading(true)
+    setError(null)
     setIsPlaying(false)
     setIsPaused(false)
     if (audioRef.current) {
@@ -47,12 +45,29 @@ function App() {
 
     try {
       const res = await fetch(`${API_BASE}/chapter?number=${chapterNumber}`)
+      if (!res.ok) throw new Error(`Server returned ${res.status}`)
       const data: ChapterData = await res.json()
       if ((data as any).error) throw new Error((data as any).error)
       setChapter(data)
       setCurrentParaIndex(0)
+
+      // Update sidebar dynamically — keep current chapter in list
+      setChapterList(prev => {
+        const exists = prev.some(c => c.number === data.chapterNumber)
+        const updated = exists ? prev : [...prev, { number: data.chapterNumber, title: data.title.replace(/^Chapter \d+:\s*/, '') }]
+        // Also add prev/next if known
+        if (data.prevChapter && !updated.some(c => c.number === data.prevChapter)) {
+          updated.push({ number: data.prevChapter, title: '...' })
+        }
+        if (data.nextChapter && !updated.some(c => c.number === data.nextChapter)) {
+          updated.push({ number: data.nextChapter, title: '...' })
+        }
+        return updated.sort((a, b) => a.number - b.number)
+      })
     } catch (err: any) {
       console.error('Failed to load chapter:', err)
+      setChapter(null)
+      setError(err.message || 'Failed to load chapter. Is the server running?')
     } finally {
       setLoading(false)
     }
@@ -60,11 +75,11 @@ function App() {
 
   // Fetch TTS audio
   const fetchTTS = useCallback(async (text: string): Promise<Blob> => {
-    const url = `${API_BASE}/tts?text=${encodeURIComponent(text)}&voice=onyx&speed=${speed}`
+    const url = `${API_BASE}/tts?text=${encodeURIComponent(text)}&voice=${voice}&speed=${speed}`
     const res = await fetch(url)
     if (!res.ok) throw new Error('TTS failed')
     return await res.blob()
-  }, [speed])
+  }, [speed, voice])
 
   // Prefetch next paragraph
   const prefetchNext = useCallback((paraIndex: number) => {
@@ -96,6 +111,12 @@ function App() {
         blob = await fetchTTS(chapter.content[paraIndex])
       }
 
+      // Verify we got valid audio (not an error JSON response)
+      if (blob.type && blob.type.includes('json')) {
+        const text = await blob.text()
+        throw new Error(`TTS error: ${text}`)
+      }
+
       if (audioRef.current) {
         const url = URL.createObjectURL(blob)
         audioRef.current.src = url
@@ -103,8 +124,9 @@ function App() {
         await audioRef.current.play()
         prefetchNext(paraIndex)
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('Playback error:', err)
+      setError(`Audio playback failed: ${err.message || err}`)
       setIsPlaying(false)
     }
   }, [chapter, fetchTTS, volume, prefetchNext])
@@ -192,10 +214,15 @@ function App() {
     if (audioRef.current) audioRef.current.volume = volume / 100
   }, [volume])
 
-  // Invalidate prefetch on speed change
+  // Invalidate prefetch on speed or voice change
   useEffect(() => {
     nextAudioBlobRef.current = null
-  }, [speed])
+  }, [speed, voice])
+
+  // Auto-load chapter on mount
+  useEffect(() => {
+    loadChapter(1892)
+  }, [loadChapter])
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -281,7 +308,7 @@ function App() {
         <aside className="sidebar">
           <h2 className="sidebar-title">Chapters</h2>
           <ul className="chapter-list">
-            {CHAPTER_LIST.map(ch => (
+            {chapterList.map(ch => (
               <li
                 key={ch.number}
                 className={`chapter-item ${chapter?.chapterNumber === ch.number ? 'active' : ''}`}
@@ -300,7 +327,9 @@ function App() {
               {loading ? 'Loading...' : chapter?.title || 'Chapter 1892: Next Target'}
             </h1>
             <div className="chapter-text">
-              {loading ? (
+              {error ? (
+                <div className="loading" style={{ color: 'var(--primary)' }}>{error}</div>
+              ) : loading ? (
                 <div className="loading">Loading chapter</div>
               ) : paragraphs.length > 0 ? (
                 paragraphs.map((text, i) => (
@@ -313,12 +342,7 @@ function App() {
                   </p>
                 ))
               ) : (
-                <>
-                  <p>Walking out of the cave after having just defeated the Demon tier beast, Agent 4 continued to walk into the direction where the two large energy readings were coming from.</p>
-                  <p>Zero was getting somewhat impatient as he had a big smile on his face. His hands were twitching during the walk, if he could, he wanted to personally test Erin, and after seeing what she had done and sensing the energy inside her.</p>
-                  <p className="reading-active">'I thought that the dhampirs' strength was mainly from their own personal aura. I knew that the dhampirs also learned Qi, but I never expected to find someone that has managed to cultivate their Qi to this level.' Zero thought, as he imagined what it would be like to use the Qi drain skill on her.</p>
-                  <p>It would mean all of the power and all of the strength that Erin had would be added to Zero's strength. Then he could achieve what he needed to achieve, and if a certain individual was to back out of their deal, he would also be able to make them pay.</p>
-                </>
+                <div className="loading">Loading chapter</div>
               )}
             </div>
           </div>
@@ -349,6 +373,17 @@ function App() {
             </div>
 
             <div className="player-settings">
+              <div className="player-setting">
+                <label>Voice</label>
+                <select className="speed-select" value={voice} onChange={e => setVoice(e.target.value)}>
+                  <option value="onyx">Onyx</option>
+                  <option value="alloy">Alloy</option>
+                  <option value="echo">Echo</option>
+                  <option value="fable">Fable</option>
+                  <option value="nova">Nova</option>
+                  <option value="shimmer">Shimmer</option>
+                </select>
+              </div>
               <div className="player-setting">
                 <label>Speed</label>
                 <select className="speed-select" value={speed} onChange={e => setSpeed(e.target.value)}>
