@@ -1,6 +1,9 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://134.98.134.222/vampire-api'
+// Use Netlify proxy (/api) on HTTPS, direct URL on HTTP
+const API_BASE = import.meta.env.VITE_API_URL || (
+  window.location.protocol === 'https:' ? '/api' : 'http://134.98.134.222/vampire-api'
+)
 
 interface ChapterData {
   title: string
